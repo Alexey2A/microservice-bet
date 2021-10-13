@@ -1,24 +1,38 @@
 package org.example.better.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.Sets;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TeamNamesFootballRpl {
-    List<String> Spartak = new ArrayList<>(Arrays.asList("Спартак","Спартак М", "Спартак Мск", "Спартак Москва"));
-    List<String> Zenit = new ArrayList<>(Arrays.asList("Зенит Ст.Петербург","Зенит", "Зенит СПб", "Зенит С-Петербург", "Зенит С-Пб"));
-    List<String> CSKA = new ArrayList<>(Arrays.asList("ЦСКА М","ЦСКА", "ЦСКА Москва", "ЦСКА М", "ЦСКА Москва"));
+    public static void main(String[] args) throws IOException {
+        System.out.println(comparisonOfTeamNames("Спартак М"));
+    }
 
-    public static String comparisonOfTeamNames(String teamName) {
-        if (teamName.equals("Спартак") || teamName.equals("Спартак М") ||
-                teamName.equals("Спартак Мск") || teamName.equals("Спартак Москва"))
-            return "Спартак М";
-        if (teamName.equals("Зенит Ст.Петербург") || teamName.equals("Зенит") ||
-                teamName.equals("Зенит СПб") || teamName.equals("Зенит С-Петербург") || teamName.equals("Зенит С-Пб"))
-            return "Зенит СПб";
-        if (teamName.equals("ЦСКА М") || teamName.equals("ЦСКА") ||
-                teamName.equals("ЦСКА Москва") || teamName.equals("ЦСКА М") || teamName.equals("ЦСКА Москва"))
-            return "ЦСКА М";
-        else return  teamName;
+    public static String comparisonOfTeamNames(String teamName)  {
+        try {
+            Properties properties = new Properties();
+            properties.load(Files.newBufferedReader(Paths.get("teams.properties"), StandardCharsets.UTF_8));
+            Map<String, Set<String>> map = properties.entrySet().stream().collect(Collectors.toMap(keyValue -> (String) keyValue.getKey(),
+                    keyValue -> Set.of(((String) keyValue.getValue()).split(","))));
+            System.out.println(properties);
+
+            for (var kv : map.entrySet()) {
+                if (kv.getValue().contains(teamName)) {
+                    return kv.getKey();
+                }
+            }
+        } catch (Exception e){
+            System.out.println(e);
+        };
+        return  " ";
     }
 }
