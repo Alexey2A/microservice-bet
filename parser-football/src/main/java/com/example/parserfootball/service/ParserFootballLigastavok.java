@@ -1,10 +1,11 @@
 package com.example.parserfootball.service;
 
 import com.example.parserfootball.dto.Game;
-import com.example.parserfootball.dto.NamesGames;
+import com.example.parserfootball.utils.NamesGames;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,12 @@ public class ParserFootballLigastavok implements Parser {
     private static List<Game> games = new ArrayList<>();
     private static List<WebElement> nameGames = new ArrayList<>();
     private final static String WEBSITE = "Ligastavok";
+
+    private final String teamsProperties;
+
+    public ParserFootballLigastavok(@Value("${teams.properties}") String teamsProperties) {
+        this.teamsProperties = teamsProperties;
+    }
 
     @Override
     public List<Game> getGames (String url) throws InterruptedException {
@@ -46,8 +53,8 @@ public class ParserFootballLigastavok implements Parser {
     @Override
     public Game parseGame(WebElement element) {
         nameGames = element.findElements(By.className("bui-commands__command-d517c1"));
-        String team1 = NamesGames.comparisonOfTeamNames(nameGames.get(0).getText(), "teams.properties");
-        String team2 = NamesGames.comparisonOfTeamNames(nameGames.get(1).getText(), "teams.properties");
+        String team1 = NamesGames.comparisonOfTeamNames(nameGames.get(0).getText(), teamsProperties);
+        String team2 = NamesGames.comparisonOfTeamNames(nameGames.get(1).getText(), teamsProperties);
 
         List<WebElement> elements = element.findElements(By.className("bui-outcome-87025c"));
 

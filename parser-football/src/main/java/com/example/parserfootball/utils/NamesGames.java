@@ -1,4 +1,4 @@
-package com.example.parserfootball.dto;
+package com.example.parserfootball.utils;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,7 +16,6 @@ public class NamesGames {
             properties.load(Files.newBufferedReader(Paths.get(nameFile), StandardCharsets.UTF_8));
             Map<String, Set<String>> map = properties.entrySet().stream().collect(Collectors.toMap(keyValue -> (String) keyValue.getKey(),
                     keyValue -> Set.of(((String) keyValue.getValue()).split(","))));
-            System.out.println(properties);
 
             for (var kv : map.entrySet()) {
                 if (kv.getValue().contains(teamName)) {

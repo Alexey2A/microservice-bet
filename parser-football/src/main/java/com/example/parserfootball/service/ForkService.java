@@ -21,14 +21,17 @@ public class ForkService {
     private final ParserFootballOlimpbet parserFootballOlimpbet;
     private final ParserFootballWinline parserFootballWinline;
     private final ParserFootballPariMatch parserFootballPariMatch;
+    private final ParserFootballFonbet parserFootballFonbet;
 
     @Autowired
     public ForkService(ParserFootballLigastavok parserFootballLigastavok, ParserFootballOlimpbet parserFootballOlimpbet,
-                       ParserFootballWinline parserFootballWinline, ParserFootballPariMatch parserFootballPariMatch) {
+                       ParserFootballWinline parserFootballWinline, ParserFootballPariMatch parserFootballPariMatch,
+                       ParserFootballFonbet parserFootballFonbet) {
         this.parserFootballLigastavok = parserFootballLigastavok;
         this.parserFootballOlimpbet = parserFootballOlimpbet;
         this.parserFootballWinline = parserFootballWinline;
         this.parserFootballPariMatch = parserFootballPariMatch;
+        this.parserFootballFonbet = parserFootballFonbet;
     }
 
     public List<String> parserStart() throws InterruptedException, ExecutionException {
@@ -49,16 +52,17 @@ public class ForkService {
             return gamesFootballWinline;
         });
 
-
-       /* System.out.println("FONBET");
-        ParserFootballFonbet parserFootballFonbet = new ParserFootballFonbet();
-        List<Game> gamesFootballFonbet = parserFootballFonbet.getGames(URL_FOOTBALL_Fonbet);
-        games.add(gamesFootballFonbet);
-        for (Game g : gamesFootballFonbet) {
-            System.out.println(g);
-        }
-        System.out.println(gamesFootballFonbet.size());
-        System.out.println("----------");*/
+        Future<List<Game>> footballFonbetResult = executorService.submit(() -> {
+            System.out.println("FONBET");
+            List<Game> gamesFootballFonbet = parserFootballFonbet.getGames(URL_FOOTBALL_Fonbet);
+//            games.add(gamesFootballFonbet);
+//            for (Game g : gamesFootballFonbet) {
+//                System.out.println(g);
+//            }
+//            System.out.println(gamesFootballFonbet.size());
+//            System.out.println("----------");
+            return gamesFootballFonbet;
+        });
 
         Future<List<Game>> foolballOlimpbetResult = executorService.submit(() -> {
             System.out.println("OLIMPBET");
@@ -100,12 +104,13 @@ public class ForkService {
         var gamesFootballOlimpbet = foolballOlimpbetResult.get();
         //var gamesFootballLigastavok = foolballLigastavokResult.get();
         var gamesFootballPariMatch = foolballPariMatchResult.get();
+        var gamesFootballFonbet = footballFonbetResult.get();
 
 
-        List<String> listOfForkChecksForTwoMatches = new ArrayList<>();
+        List<String> listOfForkChecksForTwoAndThreeMatches = new ArrayList<>();
 
-        for (List<Game> g : sameGamesList(gamesFootballOlimpbet, gamesFootballPariMatch, gamesFootballWinline)) {
-            System.out.println(g);
+        for (List<Game> g : sameGamesList(gamesFootballOlimpbet, gamesFootballPariMatch,      // поиск вилки на двух сайтах
+                gamesFootballWinline, gamesFootballFonbet)) {
             for (Game game : g) {
                 double[] coefficients = {game.getCoef().get("П1"), game.getCoef().get("П2"), game.getCoef().get("Х")};
                 for (int i = 0; i < coefficients.length; i++) {
@@ -120,16 +125,54 @@ public class ForkService {
                                     coefficient2 = coefficients2[j];
                                 }
                             }
-                            String string = new String("Проверка вилки: " + String.valueOf(result) + " " +
-                                    game + " " + coefficients[i] + " " + game2 + coefficient2 + " " + i + "\n");
-                            listOfForkChecksForTwoMatches.add(string);
+                            String string = "Проверка вилки: " + result + " " +
+                                    game + " " + coefficients[i] + " " + game2 + coefficient2 + " " + i + "\n";
+                            listOfForkChecksForTwoAndThreeMatches.add(string);
                             //System.out.printf("Проверка вилки: %f %s %s %d %n", result, game, game2, i);
                         }
                     }
                 }
             }
         }
-        return listOfForkChecksForTwoMatches;
+        for (List<Game> g : sameGamesList(gamesFootballOlimpbet,                // поиск вилки на трёх сайтах
+                                            gamesFootballPariMatch,
+                                            gamesFootballWinline,
+                                            gamesFootballFonbet)) {
+            System.out.println(g);
+            for (Game game : g) {
+                double[] coefficients = {game.getCoef().get("П1"), game.getCoef().get("П2"), game.getCoef().get("Х")};
+                for (int i = 0; i < coefficients.length; i++) {
+                    for (Game game2 : g) {
+                        if (game != game2) {
+                            double[] coefficients2 = {game2.getCoef().get("П1"), game2.getCoef().get("П2"), game2.getCoef().get("Х")};
+                            for (Game game3 : g) {
+                                if (game3 != game && game3 != game2) {
+                                    double[] coefficients3 = {game3.getCoef().get("П1"), game3.getCoef().get("П2"), game3.getCoef().get("Х")};
+
+                                    double result = 1 / coefficients[i];
+                                    for (int j = 0; j < coefficients2.length; j++) {
+                                        if (j != i) {
+                                            result += 1 / coefficients2[j];
+                                            for (int k = 0; k < coefficients3.length; k++) {
+                                                if (k != i && k != j) {
+                                                    result += 1 / coefficients3[k];
+                                                }
+                                            }
+                                            String string = new String("Проверка вилки: " + result + " " +
+                                                    game + " " + coefficients[i] + " " + game2 + " " + game3 + " " + i + "\n");
+                                            listOfForkChecksForTwoAndThreeMatches.add(string);
+                                            //System.out.printf("Проверка вилки: %f %s %s %d %n", result, game, game2, i);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        return listOfForkChecksForTwoAndThreeMatches;
     }
 
 
@@ -171,43 +214,5 @@ public class ForkService {
         return (game1Names[0].equals(game2Names[0]) && game1Names[1].equals(game2Names[1])) ||
                 (game1Names[0].equals(game2Names[1]) && game1Names[1].equals(game2Names[0]));
 
-    }
-
-    private static boolean areIdenticalMatches(Game g1, Game g2) {
-        String name1g1 = g1.getNames()[0];
-        String name2g1 = g1.getNames()[1];
-        String name1g2 = g2.getNames()[0];
-        String name2g2 = g2.getNames()[1];
-
-        char[] arrayName1g1 = name1g1.toCharArray();
-        char[] arrayName2g1 = name2g1.toCharArray();
-        char[] arrayName1g2 = name1g2.toCharArray();
-        char[] arrayName2g2 = name2g2.toCharArray();
-
-        int numberOfChar = arrayName1g1.length + arrayName2g1.length
-                + arrayName1g2.length + arrayName2g2.length;
-        int count = 0;
-
-        if (arrayName1g1.length <= arrayName1g2.length) {
-            for (int i = 0; i < arrayName1g1.length; i++) {
-                if (arrayName1g1[i] == arrayName1g2[i]) count++;
-            }
-        } else {
-            for (int i = 0; i < arrayName1g2.length; i++){
-                if (arrayName1g1[i] == arrayName1g2[i]) count++;
-            }
-        }
-
-        if (arrayName2g1.length <= arrayName2g2.length) {
-            for (int i = 0; i < arrayName2g1.length; i++) {
-                if (arrayName2g1[i] == arrayName2g2[i]) count++;
-            }
-        } else {
-            for (int i = 0; i < arrayName2g2.length; i++){
-                if (arrayName2g1[i] == arrayName2g2[i]) count++;
-            }
-        }
-
-        return (double) count / numberOfChar >= 0.35;
     }
 }
