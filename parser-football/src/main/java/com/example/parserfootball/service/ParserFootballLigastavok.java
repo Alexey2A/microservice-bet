@@ -1,6 +1,6 @@
 package com.example.parserfootball.service;
 
-import com.example.parserfootball.dto.Game;
+import com.example.parserfootball.dto.GameDto;
 import com.example.parserfootball.utils.NamesGames;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Service
 public class ParserFootballLigastavok implements Parser {
-    private static List<Game> games = new ArrayList<>();
+    private static List<GameDto> games = new ArrayList<>();
     private static List<WebElement> nameGames = new ArrayList<>();
     private final static String WEBSITE = "Ligastavok";
 
@@ -26,7 +26,7 @@ public class ParserFootballLigastavok implements Parser {
     }
 
     @Override
-    public List<Game> getGames (String url) throws InterruptedException {
+    public List<GameDto> getGames (String url) throws InterruptedException {
         System.setProperty("webdriver.chrome.driver", "D:/IdeaProjects/chromedriver.exe");
 
         ChromeDriver driver = new ChromeDriver();
@@ -51,8 +51,8 @@ public class ParserFootballLigastavok implements Parser {
     }
 
     @Override
-    public Game parseGame(WebElement element) {
-        nameGames = element.findElements(By.className("bui-commands__command-d517c1"));
+    public GameDto parseGame(WebElement element) {
+        nameGames = element.findElements(By.className("bui-commands__command-d517c1"));                 //TODO исправить!!!
         String team1 = NamesGames.comparisonOfTeamNames(nameGames.get(0).getText(), teamsProperties);
         String team2 = NamesGames.comparisonOfTeamNames(nameGames.get(1).getText(), teamsProperties);
 
@@ -60,8 +60,8 @@ public class ParserFootballLigastavok implements Parser {
 
         Map<String, Double> coef = new HashMap<>();
 
-        for (int i = 0; i < Game.RESULTS.length; i++) {
-            String info = Game.RESULTS[i];
+        for (int i = 0; i < GameDto.RESULTS.length; i++) {
+            String info = GameDto.RESULTS[i];
             String count = new String();
             if (elements.size() >= 3 && elements.get(i).getText().contains(",")) {
                 count = new String(elements.get(i).getText().replace(',' , '.' ));
@@ -73,6 +73,6 @@ public class ParserFootballLigastavok implements Parser {
                 coef.put(info, 1.0);
             }
         }
-        return new Game(new String[]{team1, team2}, null, coef, WEBSITE);
+        return new GameDto(null, null, null, coef, WEBSITE);
     }
 }

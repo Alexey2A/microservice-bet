@@ -1,7 +1,5 @@
 package com.example.parserhockey.entity;
 
-import com.example.parserhockey.service.ForkServiceHockey;
-
 import javax.persistence.*;
 
 @Entity
