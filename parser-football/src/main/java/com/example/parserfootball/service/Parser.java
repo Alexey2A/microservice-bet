@@ -1,14 +1,14 @@
 package com.example.parserfootball.service;
 
-import com.example.parserfootball.dto.Game;
+import com.example.parserfootball.dto.GameDto;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
 public interface Parser {
 
-    List<Game> getGames(String url) throws InterruptedException;
+    List<GameDto> getGames(String url) throws InterruptedException;
 
-    Game parseGame(WebElement element);
+    GameDto parseGame(WebElement element);
 
 }

@@ -1,0 +1,6 @@
+bookmakers:
+  winline:
+    football:
+      - https://winline.ru/stavki/sport/futbol/rossiya/rpl/          # РПЛ
+      - https://winline.ru/stavki/sport/futbol/angliya/apl/          # Англия. Премьер Лига
+      - https://winline.ru/stavki/sport/futbol/angliya/liga_1/       # Англия. Лига 1

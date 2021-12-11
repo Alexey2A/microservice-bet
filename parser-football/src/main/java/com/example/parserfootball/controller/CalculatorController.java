@@ -1,5 +1,7 @@
 package com.example.parserfootball.controller;
 
+import com.example.bet.common.entity.Game;
+import com.example.bet.common.repository.GameRepository;
 import com.example.parserfootball.service.CalculatorService;
 import com.example.parserfootball.service.ForkService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +18,23 @@ public class CalculatorController {
 
     private final CalculatorService calculatorService;
     private final ForkService forkService;
+    private final GameRepository gameRepository;
 
     @Autowired
-    public CalculatorController(CalculatorService calculatorService, ForkService forkService) {
+    public CalculatorController(CalculatorService calculatorService, ForkService forkService, GameRepository gameRepository) {
         this.calculatorService = calculatorService;
+
         this.forkService = forkService;
+
+        this.gameRepository = gameRepository;
     }
 
     @GetMapping("/")
     public String index(ModelMap moodel) throws InterruptedException, ExecutionException {
+        Game game = new Game();
+        game.setName("tt");
+        gameRepository.save(game);
+        gameRepository.findAll();
 
         moodel.put("games", forkService.parserStart());
         return "index";

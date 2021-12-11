@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ParserFootballPariMatch implements Parser {
-    private static final String WEBSITE = "PariMatch";
+public class ParserFootballMelbet implements Parser{
+    private static final String WEBSITE = "MelBet";
     private final String teamsProperties;
 
-    public ParserFootballPariMatch(@Value("${teams.properties}") String teamsProperties) {
+    public ParserFootballMelbet(@Value("${teams.properties}")String teamsProperties) {
         this.teamsProperties = teamsProperties;
     }
 
@@ -28,14 +28,13 @@ public class ParserFootballPariMatch implements Parser {
         ChromeDriver driver = new ChromeDriver();
         driver.get(url);
         driver.manage().window().maximize();
-        Thread.sleep(5000);
+        Thread.sleep(3000);
 
         List<GameDto> games = new ArrayList<>();
-        List<WebElement> elements = driver.findElements(By.className("_2c98cYcZ15eCL3kXBibIh_"));
+        List<WebElement> elements = driver.findElements(By.className("kofsTableBody"));
 
         for(WebElement element : elements){
-            games.add(
-                    parseGame(element));
+            games.add(parseGame(element));
         }
         driver.quit();
         return games;
@@ -44,22 +43,14 @@ public class ParserFootballPariMatch implements Parser {
     @Override
     public GameDto parseGame(WebElement element) {
         List<WebElement> nameGames = new ArrayList<>();
-        nameGames = element.findElements(By.className("styles_name__2QIKf"));
-        String[] originalNames = new String[2];
-        if (nameGames.size()>1) {
-            originalNames[0] = nameGames.get(0).getText();
-            originalNames[1] = nameGames.get(1).getText();
-        } else {
-            return new GameDto(WEBSITE);
-        }
-
+        nameGames = element.findElements(By.className("team"));
+        String team1 = nameGames.get(0).getText();
+        String team2 = nameGames.get(1).getText();
         String[] commonNames = new String[2];
-        commonNames[0] = NamesGames.comparisonOfTeamNames(nameGames.get(0).getText(), teamsProperties);
-        commonNames[1] = NamesGames.comparisonOfTeamNames(nameGames.get(1).getText(), teamsProperties);
+        commonNames[0]= NamesGames.comparisonOfTeamNames(team1, teamsProperties);
+        commonNames[1]=NamesGames.comparisonOfTeamNames(team2, teamsProperties);
 
-        String dateTime = element.findElement(By.className("styles_status__3CdNn")).getText();
-
-        List<WebElement> coefficients =element.findElements(By.className("styles_value__1V_3B"));
+        List<WebElement> coefficients =element.findElements(By.className("kof"));
 
         Map<String, Double> coef = new HashMap<>();
 
@@ -67,6 +58,6 @@ public class ParserFootballPariMatch implements Parser {
             coef.put(GameDto.RESULTS[i], Double.parseDouble(coefficients.get(i).getText()));
         }
 
-        return new GameDto(commonNames, originalNames, null, coef, WEBSITE);
+        return new GameDto(commonNames,new String[]{team1,team2}, null, coef, WEBSITE);
     }
 }

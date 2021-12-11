@@ -1,6 +1,5 @@
 package com.example.parserhockey.dto;
 
-import javax.persistence.Entity;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Map;

@@ -1,6 +1,6 @@
 package com.example.parserfootball.service;
 
-import com.example.parserfootball.dto.Game;
+import com.example.parserfootball.dto.GameDto;
 import com.example.parserfootball.utils.NamesGames;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -12,7 +12,7 @@ import java.util.*;
 
 @Service
 public class ParserFootballOlimpbet implements Parser {
-    private static List<Game> games = new ArrayList<>();
+    private static List<GameDto> games = new ArrayList<>();
     private static List<WebElement> nameGames = new ArrayList<>();
     private final static String WEBSITE = "Olimpbet";
 
@@ -23,7 +23,7 @@ public class ParserFootballOlimpbet implements Parser {
     }
 
     @Override
-    public List<Game> getGames(String url) throws InterruptedException {
+    public List<GameDto> getGames(String url) throws InterruptedException {
         System.setProperty("webdriver.chrome.driver", "D:/IdeaProjects/chromedriver.exe");
 
         ChromeDriver driver = new ChromeDriver();
@@ -34,8 +34,7 @@ public class ParserFootballOlimpbet implements Parser {
         List<WebElement> elements = driver.findElements(By.className("common__Item-sc-1p0w8dw-0"));
 
         for (int i = 0; i < elements.size(); i++) {
-            WebElement element = elements.get(i);
-            games.add(parseGame(element));
+            games.add(parseGame(elements.get(i)));
         }
         driver.quit();
 
@@ -43,11 +42,12 @@ public class ParserFootballOlimpbet implements Parser {
     }
 
     @Override
-    public Game parseGame(WebElement element) {
+    public GameDto parseGame(WebElement element) {
         String nameGame = element.findElement(By.className("default__Link-sc-14zuwl2-0")).getText();
-        String[] names = Arrays.stream(nameGame.split(" - ")).map(String::trim).toArray(String[]::new);
-        names[0]= NamesGames.comparisonOfTeamNames(names[0], teamsProperties);
-        names[1]= NamesGames.comparisonOfTeamNames(names[1], teamsProperties);
+        String[] originalNames = Arrays.stream(nameGame.split(" - ")).map(String::trim).toArray(String[]::new);
+        String[] commonNames = new String[2];
+        commonNames[0]= NamesGames.comparisonOfTeamNames(originalNames[0], teamsProperties);
+        commonNames[1]= NamesGames.comparisonOfTeamNames(originalNames[1], teamsProperties);
 
         String taboo = "&nbsp;";
         String dateTime = element.findElement(By.className("styled__EventDate-sc-vrkr7n-4")).getText();
@@ -59,8 +59,8 @@ public class ParserFootballOlimpbet implements Parser {
         Map<String, Double> coef = new HashMap<>();
 
         if (element.findElements(By.className("common-button__CommonButton-sc-xn93w0-0")).isEmpty()) {
-            for (int i = 0; i < Game.RESULTS.length; i++) {
-                String info = Game.RESULTS[i];
+            for (int i = 0; i < GameDto.RESULTS.length; i++) {
+                String info = GameDto.RESULTS[i];
                 try {
                     coef.put(info, 1.0);
                 } catch (NumberFormatException exception) {
@@ -71,8 +71,8 @@ public class ParserFootballOlimpbet implements Parser {
 
             List<WebElement> elements = element.findElements(By.className("common-button__CommonButton-sc-xn93w0-0"));
 
-            for (int i = 0; i < Game.RESULTS.length; i++) {
-                String info = Game.RESULTS[i];
+            for (int i = 0; i < GameDto.RESULTS.length; i++) {
+                String info = GameDto.RESULTS[i];
                 String count = elements.get(i).getText();
                 try {
                     coef.put(info, Double.parseDouble(count));
@@ -81,6 +81,6 @@ public class ParserFootballOlimpbet implements Parser {
                 }
             }
         }
-        return new Game(names, null, coef, WEBSITE);
+        return new GameDto(commonNames, originalNames, null, coef, WEBSITE);
     }
 }
